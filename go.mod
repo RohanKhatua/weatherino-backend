@@ -7,7 +7,6 @@ toolchain go1.22.6
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/influxdata/influxdb-client-go/v2 v2.14.0
-	github.com/joho/godotenv v1.5.1
 	github.com/sirupsen/logrus v1.9.3
 )
 
