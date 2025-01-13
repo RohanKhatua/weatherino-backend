@@ -35,7 +35,7 @@ func DeleteAllData() error {
 	err := DeleteAPI.DeleteWithName(context.Background(), org, bucket, start, stop, "")
 
 	if err != nil {
-		log.Printf("Delete error: %s\n", err)
+		customlogger.Logger.Errorf("Delete Failed %s\n", err)
 		return err
 	}
 
@@ -55,7 +55,7 @@ func ShowAllRecordsUnderMeasurement(mesaurement string) error {
 
 	results, err := QueryAPI.Query(context.Background(), query)
 	if err != nil {
-		log.Printf("Query error: %s\n", err)
+		customlogger.Logger.Errorf("Query Error %s\n", err)
 		return err
 	}
 

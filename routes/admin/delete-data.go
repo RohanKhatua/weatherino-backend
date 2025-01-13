@@ -1,6 +1,7 @@
 package admin
 
 import (
+	customlogger "go-weather/custom-logger"
 	"go-weather/utils"
 	"net/http"
 
@@ -8,18 +9,13 @@ import (
 )
 
 func DeleteDataHandler(c *gin.Context) {
-	// Helper function for returning errors
-	sendError := func(status int, message string) {
-		c.JSON(status, gin.H{"error": message})
-	}
-
 	// Delete all data
 	err := utils.DeleteAllData()
 	if err != nil {
-		sendError(http.StatusInternalServerError, "Delete from InfluxDB failed")
+		utils.SendError(http.StatusInternalServerError, "Delete from InfluxDB failed", c)
 		return
 	}
-
+	customlogger.Logger.Info("All Data Deleted")
 	// Respond with success
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Data deleted successfully",

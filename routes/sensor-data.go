@@ -1,7 +1,6 @@
 package routes
 
 import (
-	customlogger "go-weather/custom-logger"
 	"go-weather/utils"
 	"net/http"
 	"strconv"
@@ -81,7 +80,7 @@ func RetrieveDataByTimeDuration(c *gin.Context) {
 		queryDuration.Seconds = secondsInt
 	}
 
-	customlogger.Logger.Println("Query Duration: ", queryDuration)
+	// customlogger.Logger.Println("Query Duration: ", queryDuration)
 	averages, err := utils.GetWeatherAveragesByDuration(queryDuration)
 
 	if err != nil {

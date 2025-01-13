@@ -8,22 +8,18 @@ import (
 )
 
 func ViewAllDataHandler(c *gin.Context) {
-	// Helper function for returning errors
-	sendError := func(status int, message string) {
-		c.JSON(status, gin.H{"error": message})
-	}
 
 	// Retrieve and validate query parameters
 	measurement := c.Query("measurement")
 	if measurement == "" {
-		sendError(http.StatusBadRequest, "Measurement value is required")
+		utils.SendError(http.StatusBadRequest, "Measurement value is required", c)
 		return
 	}
 
 	// Show all records under the measurement
 	err := utils.ShowAllRecordsUnderMeasurement(measurement)
 	if err != nil {
-		sendError(http.StatusInternalServerError, "Query from InfluxDB failed")
+		utils.SendError(http.StatusInternalServerError, "Query from InfluxDB failed", c)
 		return
 	}
 
