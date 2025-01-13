@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	customlogger "go-weather/custom-logger"
-	"log"
 	"os"
 	"time"
 
@@ -20,7 +19,7 @@ func WritePoint(temperature float32, humidity float32) error {
 	err := WriteAPI.WritePoint(context.Background(), p)
 
 	if err != nil {
-		log.Printf("Write error: %s\n", err)
+		customlogger.Logger.Errorf("Write Error %s\n", err)
 		return err
 	}
 
@@ -51,7 +50,7 @@ func ShowAllRecordsUnderMeasurement(mesaurement string) error {
 		bucket,
 		mesaurement)
 
-	customlogger.Logger.Info(query)
+	customlogger.Logger.Infof("Query : %s", query)
 
 	results, err := QueryAPI.Query(context.Background(), query)
 	if err != nil {
