@@ -1,22 +1,35 @@
 services:
   influxdb2:
     image: influxdb:2
+    container_name: influxdb2
     ports:
       - 8086:8086
     environment:
-      DOCKER_INFLUXDB_INIT_MODE: ${INFLUXDB_INIT_MODE}
-      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_ADMIN_USERNAME}
-      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
-      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_INIT_ORG}
-      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_INIT_BUCKET}
+      DOCKER_INFLUXDB_INIT_MODE: ${INFLUXDB_INIT_MODE:-setup}
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_ADMIN_USERNAME:-admin}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD:-password}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN:-admin-token}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_INIT_ORG:-my-org}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_INIT_BUCKET:-my-bucket}
     volumes:
-      - type: volume
-        source: influxdb2-data
-        target: /var/lib/influxdb2
-      - type: volume
-        source: influxdb2-config
-        target: /etc/influxdb2
+      - influxdb2-data:/var/lib/influxdb2
+      - influxdb2-config:/etc/influxdb2
+
+  backend:
+    build: .
+    container_name: gin-backend
+    ports:
+      - 8080:8080
+    env_file:
+      - .env
+    environment:
+      INFLUXDB_URL: http://influxdb2:8086
+      INFLUXDB_TOKEN: ${INFLUXDB_ADMIN_TOKEN:-admin-token}
+      INFLUXDB_ORG: ${INFLUXDB_INIT_ORG:-my-org}
+      INFLUXDB_BUCKET: ${INFLUXDB_INIT_BUCKET:-my-bucket}
+    depends_on:
+      - influxdb2
+
 volumes:
   influxdb2-data:
   influxdb2-config:
