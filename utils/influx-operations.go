@@ -2,6 +2,8 @@ package utils
 
 import (
 	"context"
+	"fmt"
+	customlogger "go-weather/custom-logger"
 	"log"
 	"os"
 	"time"
@@ -35,6 +37,33 @@ func DeleteAllData() error {
 	if err != nil {
 		log.Printf("Delete error: %s\n", err)
 		return err
+	}
+
+	return nil
+}
+
+func ShowAllRecordsUnderMeasurement(mesaurement string) error {
+	bucket := os.Getenv("INFLUXDB_INIT_BUCKET")
+	query := fmt.Sprintf(
+		`from(bucket:"%s") 
+		|> range(start: 0) 
+		|> filter(fn: (r) => r._measurement == "%s")`,
+		bucket,
+		mesaurement)
+
+	customlogger.Logger.Info(query)
+
+	results, err := QueryAPI.Query(context.Background(), query)
+	if err != nil {
+		log.Printf("Query error: %s\n", err)
+		return err
+	}
+
+	for results.Next() {
+		fieldName := results.Record().Field()
+		fieldValue := results.Record().Value()
+		resultTime := results.Record().Time()
+		customlogger.Logger.Info(fmt.Sprintf("Field: %s, Value: %v at %s", fieldName, fieldValue, resultTime.String()))
 	}
 
 	return nil
