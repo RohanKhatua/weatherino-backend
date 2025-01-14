@@ -19,10 +19,10 @@ type WeatherAverages struct {
 	Humidity    float64
 }
 
-// GetAverages is a function that returns the average temperature and humidity for the last specified time period
+// GetWeatherAveragesByDuration is a function that returns the average temperature and humidity for the last specified time period
 // The function takes a WeatherDuration as an argument and returns a WeatherAverages struct
 // if no duration is passed - the function defaults to 10 minutes
-func GetWeatherAveragesByDuration(duration WeatherDuration) (WeatherAverages, error) {
+func GetWeatherAveragesByDuration(duration WeatherDuration, measurementName string) (WeatherAverages, error) {
 	if duration.Hours == 0 && duration.Minutes == 0 && duration.Seconds == 0 {
 		duration.Minutes = 10
 	}
@@ -39,10 +39,10 @@ func GetWeatherAveragesByDuration(duration WeatherDuration) (WeatherAverages, er
 
 	query := fmt.Sprintf(`from(bucket:"%s")
 	|> range(start: %s)
-	|> filter(fn: (r) => r._measurement == "weather-data")
+	|> filter(fn: (r) => r._measurement == "%s")
 	|> filter(fn: (r) => r._field == "temperature" or r._field == "humidity")
 	|> mean()
-	|> yield()`, bucket, rangeStart)
+	|> yield()`, bucket, rangeStart, measurementName)
 
 	results, err := QueryAPI.Query(context.Background(), query)
 	if err != nil {
