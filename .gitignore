@@ -15,6 +15,7 @@
 *.so
 *.dylib
 /tmp
+.idea
 
 # Test binary, built with `go test -c`
 *.test
@@ -29,3 +30,4 @@
 go.work
 
 # End of https://www.toptal.com/developers/gitignore/api/dotenv,go
+.DS_Store
