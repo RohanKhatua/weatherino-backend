@@ -10,12 +10,12 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
-func WritePoint(temperature float32, humidity float32) error {
+func WritePoint(temperature float32, humidity float32, measurement string, timestamp time.Time) error {
 	p := influxdb2.NewPoint(
-		"weather-data",
-		map[string]string{"sensor": "DHT11"},
+		measurement,         // Measurement Name (Table Name)
+		map[string]string{}, // Tags - not required
 		map[string]interface{}{"temperature": temperature, "humidity": humidity},
-		time.Now())
+		timestamp)
 	err := WriteAPI.WritePoint(context.Background(), p)
 
 	if err != nil {
@@ -26,6 +26,7 @@ func WritePoint(temperature float32, humidity float32) error {
 	return nil
 }
 
+// DeleteAllData deletes all the data in the entire bucket - all measurements inside it as well.
 func DeleteAllData() error {
 	org := os.Getenv("INFLUXDB_INIT_ORG")
 	bucket := os.Getenv("INFLUXDB_INIT_BUCKET")
@@ -41,14 +42,14 @@ func DeleteAllData() error {
 	return nil
 }
 
-func ShowAllRecordsUnderMeasurement(mesaurement string) error {
+func ShowAllRecordsUnderMeasurement(measurement string) error {
 	bucket := os.Getenv("INFLUXDB_INIT_BUCKET")
 	query := fmt.Sprintf(
 		`from(bucket:"%s") 
 		|> range(start: 0) 
 		|> filter(fn: (r) => r._measurement == "%s")`,
 		bucket,
-		mesaurement)
+		measurement)
 
 	customlogger.Logger.Infof("Query : %s", query)
 

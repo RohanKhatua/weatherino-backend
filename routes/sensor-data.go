@@ -1,15 +1,21 @@
 package routes
 
 import (
+	customlogger "go-weather/custom-logger"
 	"go-weather/utils"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 // SaveSensorDataHandler handles the writing of sensor data to InfluxDB
 func SaveSensorDataHandler(c *gin.Context) {
+	// Set request time as soon as this function gets invoked for accuracy
+
+	requestTime := time.Now()
+
 	// Retrieve and validate query parameters
 	temperature := c.Query("temp")
 	humidity := c.Query("humid")
@@ -34,11 +40,13 @@ func SaveSensorDataHandler(c *gin.Context) {
 	}
 
 	// Write the data to InfluxDB
-	err = utils.WritePoint(float32(temperatureValue), float32(humidityValue))
+	err = utils.WritePoint(float32(temperatureValue), float32(humidityValue), "sensor_data", requestTime)
 	if err != nil {
 		utils.SendError(http.StatusInternalServerError, "Write to InfluxDB failed", c)
 		return
 	}
+
+	customlogger.Logger.Infof("Sensor || Temperature: %f, Humidity: %f", temperatureValue, humidityValue)
 
 	// Respond with success
 	c.JSON(http.StatusOK, gin.H{
@@ -81,7 +89,7 @@ func RetrieveDataByTimeDuration(c *gin.Context) {
 	}
 
 	// customlogger.Logger.Println("Query Duration: ", queryDuration)
-	averages, err := utils.GetWeatherAveragesByDuration(queryDuration)
+	averages, err := utils.GetWeatherAveragesByDuration(queryDuration, "sensor_data")
 
 	if err != nil {
 		utils.SendError(http.StatusInternalServerError, "Failed to retrieve data", c)
