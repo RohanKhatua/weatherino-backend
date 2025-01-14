@@ -7,10 +7,13 @@ import (
 	"go-weather/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/robfig/cron/v3"
 )
 
 func setupRouter() {
 	r := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+	// this disables logging - use custom logger for clarity and this provides performance benefits
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
@@ -30,7 +33,20 @@ func setupRouter() {
 	if err != nil {
 		cl.Logger.Fatal(err)
 	}
+}
 
+func setupCron() {
+	c := cron.New()
+	_, err := c.AddFunc("0 0 * * *", utils.DailyAggregation)
+	// Setting Cron Job to run every minute for testing
+	// Use postman to send requests for ten minutes and check
+
+	if err != nil {
+		cl.Logger.Errorf("Error adding cron job: %s", err)
+		return
+	}
+
+	c.Start()
 }
 
 func main() {
@@ -39,6 +55,7 @@ func main() {
 
 	// Create the InfluxDB client and initialize the API objects
 	utils.CreateInfluxClient()
+	setupCron()
 	setupRouter()
 
 }

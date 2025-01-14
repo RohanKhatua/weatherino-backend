@@ -12,7 +12,7 @@ func DeleteDataHandler(c *gin.Context) {
 	// Delete all data
 	err := utils.DeleteAllData()
 	if err != nil {
-		utils.SendError(http.StatusInternalServerError, "Delete from InfluxDB failed", c)
+		utils.SendError(http.StatusInternalServerError, "Bucket Data Delete Failed", c)
 		return
 	}
 	customlogger.Logger.Info("All Data Deleted")
