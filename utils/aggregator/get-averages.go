@@ -1,28 +1,19 @@
-package utils
+package aggregator
 
 import (
 	"context"
 	"fmt"
+	"go-weather/models"
+	dbutils "go-weather/utils/db-utils"
 	"log"
 	"os"
 	"time"
 )
 
-type WeatherDuration struct {
-	Hours   int
-	Minutes int
-	Seconds int
-}
-
-type WeatherAverages struct {
-	Temperature float64
-	Humidity    float64
-}
-
 // GetWeatherAveragesByDuration is a function that returns the average temperature and humidity for the last specified time period
 // The function takes a WeatherDuration as an argument and returns a WeatherAverages struct
 // if no duration is passed - the function defaults to 10 minutes
-func GetWeatherAveragesByDuration(duration WeatherDuration, measurementName string) (WeatherAverages, error) {
+func GetWeatherAveragesByDuration(duration models.WeatherDuration, measurementName string) (models.WeatherAverages, error) {
 	if duration.Hours == 0 && duration.Minutes == 0 && duration.Seconds == 0 {
 		duration.Minutes = 10
 	}
@@ -44,10 +35,10 @@ func GetWeatherAveragesByDuration(duration WeatherDuration, measurementName stri
 	|> mean()
 	|> yield()`, bucket, rangeStart, measurementName)
 
-	results, err := QueryAPI.Query(context.Background(), query)
+	results, err := dbutils.QueryAPI.Query(context.Background(), query)
 	if err != nil {
 		log.Println(err)
-		return WeatherAverages{}, err
+		return models.WeatherAverages{}, err
 	}
 
 	averageTemperature := 0.0
@@ -65,7 +56,7 @@ func GetWeatherAveragesByDuration(duration WeatherDuration, measurementName stri
 		}
 	}
 
-	return WeatherAverages{
+	return models.WeatherAverages{
 		Temperature: averageTemperature,
 		Humidity:    averageHumidity,
 	}, nil

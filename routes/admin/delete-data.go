@@ -2,7 +2,8 @@ package admin
 
 import (
 	customlogger "go-weather/custom-logger"
-	"go-weather/utils"
+	dbutils "go-weather/utils/db-utils"
+	serverutils "go-weather/utils/server-utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,9 +11,9 @@ import (
 
 func DeleteDataHandler(c *gin.Context) {
 	// Delete all data
-	err := utils.DeleteAllData()
+	err := dbutils.DeleteAllData()
 	if err != nil {
-		utils.SendError(http.StatusInternalServerError, "Bucket Data Delete Failed", c)
+		serverutils.SendError(http.StatusInternalServerError, "Bucket Data Delete Failed", c)
 		return
 	}
 	customlogger.Logger.Info("All Data Deleted")

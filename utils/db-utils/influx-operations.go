@@ -1,4 +1,4 @@
-package utils
+package dbutils
 
 import (
 	"context"
@@ -67,4 +67,20 @@ func ShowAllRecordsUnderMeasurement(measurement string) error {
 	}
 
 	return nil
+}
+
+func DeleteDailyData(measurement string) error {
+	bucket := os.Getenv("INFLUXDB_INIT_BUCKET")
+	org := os.Getenv("INFLUXDB_INIT_ORG")
+	start := time.Now().AddDate(0, 0, -1)
+	stop := time.Now()
+	err := DeleteAPI.DeleteWithName(context.Background(), org, bucket, start, stop, measurement)
+
+	if err != nil {
+		customlogger.Logger.Errorf("Daily Data Delete Failed %s\n", err)
+		return err
+	}
+
+	return nil
+
 }

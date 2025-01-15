@@ -1,4 +1,4 @@
-package utils
+package dbutils
 
 import (
 	customlogger "go-weather/custom-logger"

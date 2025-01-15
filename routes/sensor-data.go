@@ -2,7 +2,10 @@ package routes
 
 import (
 	customlogger "go-weather/custom-logger"
-	"go-weather/utils"
+	"go-weather/models"
+	"go-weather/utils/aggregator"
+	dbutils "go-weather/utils/db-utils"
+	serverutils "go-weather/utils/server-utils"
 	"net/http"
 	"strconv"
 	"time"
@@ -21,28 +24,28 @@ func SaveSensorDataHandler(c *gin.Context) {
 	humidity := c.Query("humid")
 
 	if temperature == "" || humidity == "" {
-		utils.SendError(http.StatusBadRequest, "Temperature and Humidity values are required", c)
+		serverutils.SendError(http.StatusBadRequest, "Temperature and Humidity values are required", c)
 		return
 	}
 
 	// Parse temperature
 	temperatureValue, err := strconv.ParseFloat(temperature, 32)
 	if err != nil {
-		utils.SendError(http.StatusBadRequest, "Invalid Temperature value", c)
+		serverutils.SendError(http.StatusBadRequest, "Invalid Temperature value", c)
 		return
 	}
 
 	// Parse humidity
 	humidityValue, err := strconv.ParseFloat(humidity, 32)
 	if err != nil {
-		utils.SendError(http.StatusBadRequest, "Invalid Humidity value", c)
+		serverutils.SendError(http.StatusBadRequest, "Invalid Humidity value", c)
 		return
 	}
 
 	// Write the data to InfluxDB
-	err = utils.WritePoint(float32(temperatureValue), float32(humidityValue), "sensor_data", requestTime)
+	err = dbutils.WritePoint(float32(temperatureValue), float32(humidityValue), "sensor_data", requestTime)
 	if err != nil {
-		utils.SendError(http.StatusInternalServerError, "Write to InfluxDB failed", c)
+		serverutils.SendError(http.StatusInternalServerError, "Write to InfluxDB failed", c)
 		return
 	}
 
@@ -59,12 +62,12 @@ func RetrieveDataByTimeDuration(c *gin.Context) {
 	minutes := c.Query("minutes")
 	seconds := c.Query("seconds")
 
-	queryDuration := utils.WeatherDuration{}
+	queryDuration := models.WeatherDuration{}
 
 	if hours != "" {
 		hoursInt, err := strconv.Atoi(hours)
 		if err != nil {
-			utils.SendError(http.StatusBadRequest, "Invalid hours value", c)
+			serverutils.SendError(http.StatusBadRequest, "Invalid hours value", c)
 			return
 		}
 		queryDuration.Hours = hoursInt
@@ -73,7 +76,7 @@ func RetrieveDataByTimeDuration(c *gin.Context) {
 	if minutes != "" {
 		minutesInt, err := strconv.Atoi(minutes)
 		if err != nil {
-			utils.SendError(http.StatusBadRequest, "Invalid minutes value", c)
+			serverutils.SendError(http.StatusBadRequest, "Invalid minutes value", c)
 			return
 		}
 		queryDuration.Minutes = minutesInt
@@ -82,17 +85,17 @@ func RetrieveDataByTimeDuration(c *gin.Context) {
 	if seconds != "" {
 		secondsInt, err := strconv.Atoi(seconds)
 		if err != nil {
-			utils.SendError(http.StatusBadRequest, "Invalid seconds value", c)
+			serverutils.SendError(http.StatusBadRequest, "Invalid seconds value", c)
 			return
 		}
 		queryDuration.Seconds = secondsInt
 	}
 
 	// customlogger.Logger.Println("Query Duration: ", queryDuration)
-	averages, err := utils.GetWeatherAveragesByDuration(queryDuration, "sensor_data")
+	averages, err := aggregator.GetWeatherAveragesByDuration(queryDuration, "sensor_data")
 
 	if err != nil {
-		utils.SendError(http.StatusInternalServerError, "Failed to retrieve data", c)
+		serverutils.SendError(http.StatusInternalServerError, "Failed to retrieve data", c)
 		return
 	}
 
