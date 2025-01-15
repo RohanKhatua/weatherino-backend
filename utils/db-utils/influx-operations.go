@@ -72,15 +72,21 @@ func ShowAllRecordsUnderMeasurement(measurement string) error {
 func DeleteDailyData(measurement string) error {
 	bucket := os.Getenv("INFLUXDB_INIT_BUCKET")
 	org := os.Getenv("INFLUXDB_INIT_ORG")
-	start := time.Now().AddDate(0, 0, -1)
-	stop := time.Now()
-	err := DeleteAPI.DeleteWithName(context.Background(), org, bucket, start, stop, measurement)
 
+	if bucket == "" || org == "" {
+		return fmt.Errorf("INFLUXDB_INIT_BUCKET or INFLUXDB_INIT_ORG environment variable is not set")
+	}
+
+	now := time.Now()
+	start := time.Date(now.Year(), now.Month(), now.Day()-1, 0, 0, 0, 0, now.Location())
+	stop := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
+	err := DeleteAPI.DeleteWithName(context.Background(), org, bucket, start, stop, measurement)
 	if err != nil {
-		customlogger.Logger.Errorf("Daily Data Delete Failed %s\n", err)
+		customlogger.Logger.Errorf("Failed to delete daily data for measurement '%s': %s", measurement, err)
 		return err
 	}
 
+	customlogger.Logger.Infof("Successfully deleted daily data for measurement '%s' from %s to %s", measurement, start, stop)
 	return nil
-
 }
